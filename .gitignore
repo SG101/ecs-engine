@@ -1,3 +1,9 @@
+# cmake
+Makefile
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+
 # build paths
 bin/
 build/
