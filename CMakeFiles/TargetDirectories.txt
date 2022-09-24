@@ -1,4 +1,0 @@
-/Users/Scott/Documents/c-projects/ecs-engine/CMakeFiles/game.dir
-/Users/Scott/Documents/c-projects/ecs-engine/CMakeFiles/engine.dir
-/Users/Scott/Documents/c-projects/ecs-engine/CMakeFiles/edit_cache.dir
-/Users/Scott/Documents/c-projects/ecs-engine/CMakeFiles/rebuild_cache.dir
