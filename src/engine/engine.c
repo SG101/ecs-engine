@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ecs.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "debug.h"
 
 #define CURRENT_TIME() (float)(clock() / CLOCKS_PER_SEC)
@@ -42,7 +42,7 @@ INLINE void init()
 		exit(1);
 	}
 
-	if(SDL_CreateWindowAndRenderer(800, 420, SDL_WINDOW_RESIZABLE, &window, &renderer))
+	if(SDL_CreateWindowAndRenderer(800, 420, 0, &window, &renderer))
 	{
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize window or renderer: %s\n", SDL_GetError());
 		exit(2);
