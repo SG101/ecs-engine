@@ -27,20 +27,6 @@ adbAsset* adbLoadedAssets;
 size_t adbAssetCount;
 size_t adbMaxAssets;
 
-void adbSurfaceDelete(void* surface)
-{
-	adbSurface* inst = surface;
-
-	for(size_t i = 0; i < inst->textureCount; ++i)
-	{
-		SDL_DestroyTexture(inst->textures[i].texture);
-	}
-
-	free(inst->textures);
-	free(inst->originSurface);
-	free(inst);
-}
-
 void adbInit(size_t maxassets)
 {
 	assert(!adbIsInit);
@@ -79,6 +65,31 @@ void adbClear()
 {
 	adbDeleteAssets();
 	adbInit(adbMaxAssets);
+}
+
+/*
+ * Clean up a created adbSurface
+ */
+void adbSurfaceDelete(void* surface)
+{
+	adbSurface* inst = surface;
+
+	for(size_t i = 0; i < inst->textureCount; ++i)
+	{
+		SDL_DestroyTexture(inst->textures[i].texture);
+	}
+
+	free(inst->textures);
+	free(inst->originSurface);
+	free(inst);
+}
+
+/*
+ * Passthrough function to delete a TTF_Font
+ */
+void adbTTF_FontDelete(void* font)
+{
+	TTF_CloseFont((TTF_Font*)font);
 }
 
 size_t adbHashStr ( const char* str )
@@ -172,7 +183,7 @@ TTF_Font* adbGetFont(const char* filepath)
 		TTF_Font* file = TTF_OpenFont(filepath, 30);
 		adbLoadedAssets[found].instance = file;
 		adbLoadedAssets[found].pathhash = hash;
-		adbLoadedAssets[found].deleter = &TTF_CloseFont;
+		adbLoadedAssets[found].deleter = &adbTTF_FontDelete;
 		return file;
 	}
 	// if the found bucket is filled, return that asset
