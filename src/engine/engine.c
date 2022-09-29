@@ -15,6 +15,9 @@ SDL_Window* gameWindow;
 SDL_Renderer* gameRenderer;
 int tryQuit;
 
+int argCount;
+char** argVector;
+
 // FORWARD DECL FUNC
 INLINE void init();
 INLINE void run();
@@ -28,13 +31,28 @@ extern void register_components();
 extern void init_game();
 extern void exit_game();
 
-int main(/*int argc, char* argv[]*/)
+int main(int argc, char* argv[])
 {
+	argCount = argc;
+	argVector = argv;
 	init();
 	run();
 	clean();
 
 	return 0;
+}
+
+INLINE void set_default_asset_path()
+{
+	char* lastDir = strrchr(argVector[0], '/');
+	size_t len = lastDir - argVector[0] + 1;
+
+	char* assetPath = malloc(len * sizeof(char));
+	memcpy(assetPath, argVector[0], len * sizeof(char));
+	assetPath[len] = '\0';
+
+	DEBUG_LOGLN("dir len = %zu, dir path = %s", len, assetPath);
+	adbSetAssetRoot(argVector[0], len);
 }
 
 INLINE void init()
@@ -51,7 +69,9 @@ INLINE void init()
 		exit(2);
 	}
 
-	adbInit(101000);
+	adbInit(100);
+	set_default_asset_path();
+
 	ecsInit();
 
 	IM_Init();
