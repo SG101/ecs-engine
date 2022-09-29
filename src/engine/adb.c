@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <memory.h>
+#include <string.h>
 
 typedef void(*adbDeleterFn)(void*);
 
@@ -27,6 +28,8 @@ adbAsset* adbLoadedAssets;
 size_t adbAssetCount;
 size_t adbMaxAssets;
 
+char* adbAssetRoot = NULL;
+
 void adbInit(size_t maxassets)
 {
 	assert(!adbIsInit);
@@ -37,6 +40,17 @@ void adbInit(size_t maxassets)
 
 	adbAssetCount = 0;
 	adbIsInit = 1;
+}
+
+void adbSetAssetRoot(const char* assetRoot, size_t len)
+{
+	if(adbAssetRoot != NULL)
+		free(adbAssetRoot);
+
+	char* nptr = malloc(strlen(assetRoot) * sizeof(char));
+	assert(nptr != NULL);
+	adbAssetRoot = nptr;
+	strcpy(adbAssetRoot, assetRoot);
 }
 
 void adbDeleteAssets()
@@ -170,9 +184,14 @@ size_t adbFindAssetOrFree(size_t hash)
 
 TTF_Font* adbGetFont(const char* filepath)
 {
-	size_t hash = adbHashStr(filepath);
+	char* fullpath = malloc((strlen(filepath) + strlen(adbAssetRoot)) * sizeof(char));
+	strcpy(fullpath, adbAssetRoot);
+	strcat(fullpath, filepath);
 
+	size_t hash = adbHashStr(fullpath);
 	size_t found = adbFindAssetOrFree(hash);
+
+	free(fullpath);
 
 	if(found == adbMaxAssets)
 		return NULL;
@@ -181,6 +200,7 @@ TTF_Font* adbGetFont(const char* filepath)
 	if(adbLoadedAssets[found].pathhash == 0)
 	{
 		TTF_Font* file = TTF_OpenFont(filepath, 30);
+		assert(file != NULL);
 		adbLoadedAssets[found].instance = file;
 		adbLoadedAssets[found].pathhash = hash;
 		adbLoadedAssets[found].deleter = &adbTTF_FontDelete;
@@ -194,10 +214,50 @@ TTF_Font* adbGetFont(const char* filepath)
 	assert(0);
 }
 
+SDL_Surface* adbGetSurface(const char* filepath)
+{
+	char* fullpath = malloc((strlen(filepath) + strlen(adbAssetRoot)) * sizeof(char));
+	strcpy(fullpath, adbAssetRoot);
+	strcat(fullpath, filepath);
+
+	size_t hash = adbHashStr(fullpath);
+	size_t found = adbFindAssetOrFree(hash);
+
+	free(fullpath);
+
+	if(found == adbMaxAssets)
+		return NULL;
+
+	if(adbLoadedAssets[found].pathhash == 0)
+	{
+		SDL_Surface* surface = IMG_Load(filepath);
+		assert(surface != NULL);
+		adbSurface* file = malloc(sizeof(adbSurface));
+		adbLoadedAssets[found].pathhash = hash;
+		adbLoadedAssets[found].deleter = &adbSurfaceDelete;
+		adbLoadedAssets[found].instance = file;
+		file->textures = NULL;
+		file->textureCount = 0;
+		file->originSurface = surface;
+		return file->originSurface;
+	}
+	else
+	{
+		return ((adbSurface*)adbLoadedAssets[found].instance)->originSurface;
+	}
+}
+
 SDL_Texture* adbGetTexture(const char* filepath, SDL_Renderer* renderer)
 {
-	size_t hash = adbHashStr(filepath);
+	char* fullpath = malloc((strlen(filepath) + strlen(adbAssetRoot)) * sizeof(char));
+	strcpy(fullpath, adbAssetRoot);
+	strcat(fullpath, filepath);
+
+	size_t hash = adbHashStr(fullpath);
 	size_t found = adbFindAssetOrFree(hash);
+
+	free(fullpath);
+
 	if(found == adbMaxAssets)
 		return NULL;
 
@@ -205,6 +265,7 @@ SDL_Texture* adbGetTexture(const char* filepath, SDL_Renderer* renderer)
 	{
 		// load file
 		SDL_Surface* surf = IMG_Load(filepath);
+		assert(surf != NULL);
 
 		// create a new instance of adbSurface in hash bucket
 		adbLoadedAssets[found].instance = malloc(sizeof(adbSurface));

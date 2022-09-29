@@ -13,8 +13,11 @@ extern void adbInit(size_t maxassets);
 extern void adbTerminate();
 extern void adbClear();
 
+extern void adbSetAssetRoot(const char* assetRootPath, size_t len);
+
 extern TTF_Font* adbGetFont(const char* filepath);
 extern SDL_Texture* adbGetTexture(const char* filepath, SDL_Renderer* renderer);
+extern SDL_Surface* adbGetSurface(const char* filepath);
 
 #ifdef __cplusplus
 }
