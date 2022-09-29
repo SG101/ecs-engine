@@ -42,17 +42,59 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+/*
+ * find the lexical parent path to path and output it into outPath and its length into outLen.
+ * this function does not check if its input is a valid path; it only searches for the first '/' not at the end of the path.
+ */
+INLINE void findLexicalParentPath(char* path, char** outPath, size_t* outLen)
+{
+	size_t startLength = strlen(path);
+	size_t length;
+	
+	/* -2 to avoid picking the current directory */
+	char* c = path + startLength - 2;
+	/* find the parent directory */
+	for(; c != path; c--)
+	{
+		if(*c == '/')
+		{
+			break;
+		}
+	}
+	/* return if no parent directory was found */
+	if(*c != '/')
+	{
+		*outPath = NULL;
+		*outLen = 0;
+		return;
+	}
+	else
+	{
+		length = c - path + 1;
+		char* npath = malloc((length) * sizeof(char));
+		if(npath == NULL)
+		{
+			*outPath = NULL;
+			*outLen = 0;
+			return;
+		}
+		*outPath = npath;
+		*outLen = length;
+		memcpy(npath, path, (length-1) * sizeof(char));
+		npath[length-1] = '\0';
+	}
+}
+
 INLINE void set_default_asset_path()
 {
-	char* lastDir = strrchr(argVector[0], '/');
-	size_t len = lastDir - argVector[0] + 1;
+	static const char* relativeAssetsPath = "../Assets/";
 
-	char* assetPath = malloc(len * sizeof(char));
-	memcpy(assetPath, argVector[0], len * sizeof(char));
-	assetPath[len] = '\0';
+	char* execParentDir;
+	size_t execParentDirLen;
+	findLexicalParentPath(argVector[0], &execParentDir, &execParentDirLen);
 
-	DEBUG_LOGLN("dir len = %zu, dir path = %s", len, assetPath);
-	adbSetAssetRoot(argVector[0], len);
+	DEBUG_LOGLN("dir len = %zu, dir path = %s", execParentDirLen, execParentDir);
+	adbSetAssetRoot(execParentDir, execParentDirLen);
 }
 
 INLINE void init()
